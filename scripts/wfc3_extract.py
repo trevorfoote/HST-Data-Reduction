@@ -19,14 +19,17 @@ def wfc3_extract(plnm='W79', numxaps=5, numyaps=10):
 
 ###########   Working Directory   #####################   
     #fpath='/Users/Trevor/Pythoncode/HST/WASP79/'
-    fpath = '/home/trevor/OneDrive/Coding/HST/WASP79/'
-    filenames = glob.glob(fpath +'exposures/'+ '*ima.fits')
+    fpath = '/home/trevor/OneDrive/Coding/HST/WASP79/' #CHANGE to your directory
+    filenames = glob.glob(fpath +'exposures/'+ '*ima.fits') #CHANGE if storing 
+                               #your exposures in a different folder structure
     filenames = sorted(filenames)
     directimage = glob.glob(fpath +'*ima.fits')
     flatimage = glob.glob(fpath + '*G141.flat*')
     hdulist = fits.open(flatimage[0])
     flat = hdulist[0].data
-    flat = flat[245:245+522, 245:245+522]
+    flat = flat[245:245+522, 245:245+522] #CHANGE Will need to look in header 
+            #information or look at image using DS9 to find ACTUAL pixel 
+            #numbers on detector that correspond to origin in image.
     hdulist.close()
 ###########   LOOP OVER EACH FITS FILE   #####################   
     for i in range(0, len(filenames)):
@@ -132,7 +135,10 @@ def background_and_flat(scidata, images, flat, j, i):
     scidata=np.ma.masked_array(scidata, m)         
     scidata = sigma_clip(scidata, sigma=7)         
     #backbox=scidata[xybox[2]-100:xybox[2]-50, :]
-    backbox=scidata[xybox[3]+50:xybox[3]+100, :]
+    backbox=scidata[xybox[3]+50:xybox[3]+100, :] #Change range of backbox to 
+                                                #be where you want the background
+                                                #pulled from in form 
+                                                #scidata[ymin, ymax, xmin, xmax]
     bkgd = backbox.mean(axis=0)
     #print('background',bkgd)
     bkgd = sp.signal.medfilt(bkgd,31)
@@ -149,31 +155,43 @@ def background_and_flat(scidata, images, flat, j, i):
 def getbox(scidata):
     holdy=np.zeros(10)
     holdx=np.zeros(10)
-    for xx in range(80,180,10):           
-        for yy in range(0,250):
+    for xx in range(80,180,10): #CHANGE the 80 & 180 to span pixels that are on 
+                                #either side of the left edge of your spectra 
+                                #without encompassing contamination sources
+        for yy in range(0,250): #CHANGE the 0 & 250 to span pixels that are on
+                                #either side of the bottom edge of your spectra
+                                #without encompassing contamination sources
             ybot=yy
             if scidata[yy,xx] > 2*np.mean(scidata):
                 break
-        holdy[int((xx-80)/10-1)]=ybot
+        holdy[int((xx-80)/10-1)]=ybot #CHANGE 80 to min value chosen for xx
     ybot=int(np.median(holdy))
     
-    for xx in range(80,180,10):
-        for yy in range(450,0, -1):
+    for xx in range(80,180,10): #CHANGE the 80 & 180 to span pixels that are on 
+                                #either side of the left edge of your spectra 
+                                #without encompassing contamination sources
+        for yy in range(450,0, -1): #CHANGE the 450 & 0 to span pixels that are 
+                                #on either side of the top edge of your spectra
+                                #without encompassing contamination sources
             ytop=yy
             if scidata[yy,xx] > 2*np.mean(scidata):
                 break
-        holdy[int((xx-80)/10-1)]=ytop
+        holdy[int((xx-80)/10-1)]=ytop #CHANGE 80 to min value chosen for xx
     ytop=int(np.median(holdy))
 
     for yy in range(ybot,ytop, (ytop-ybot)//6):
-        for xx in range(0,350):
+        for xx in range(0,350): #CHANGE the 0 & 350 to span pixels that are on 
+                                #either side of the left edge of your spectra 
+                                #without encompassing contamination sources
             xleft=xx
             if scidata[yy,xx] > 2*np.mean(scidata):
                 break
         holdx[int((yy-ybot)/((ytop-ybot)//6)-1)]=xleft
     xleft=int(np.median(holdx))
     for yy in range(ybot,ytop, (ytop-ybot)//6):
-        for xx in range(250,0, -1):
+        for xx in range(250,0, -1): #CHANGE the 250 & 0 to span pixels that are on 
+                                #either side of the right edge of your spectra 
+                                #without encompassing contamination sources
             xright=xx
             if scidata[yy,xx] > 2*np.mean(scidata):
                 break
